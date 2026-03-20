@@ -1,0 +1,5 @@
+rootProject.name = 'Llama'
+
+include 'core'
+include 'bukkit'
+include 'velocity'

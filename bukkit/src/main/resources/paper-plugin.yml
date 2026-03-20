@@ -1,0 +1,4 @@
+name: Llama
+version: '1.0'
+main: gg.desolve.llama.bukkit.LlamaBukkit
+api-version: '1.21'
