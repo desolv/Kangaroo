@@ -18,7 +18,9 @@ dependencies {
     implementation 'co.aikar:acf-velocity:0.5.1-SNAPSHOT'
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-    compileOnly 'me.lucko:helper:5.6.14'
+    implementation 'me.lucko:helper:5.6.14'
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
 }
 
 shadowJar {
@@ -31,6 +33,7 @@ shadowJar {
     relocate 'dev.dejvokep.boostedyaml', 'gg.desolve.kangaroo.libs.boostedyaml'
     relocate 'org.bson', 'gg.desolve.kangaroo.libs.bson'
     relocate 'org.reactivestreams', 'gg.desolve.kangaroo.libs.reactivestreams'
+    relocate 'me.lucko.helper', 'gg.desolve.kangaroo.libs.helper'
 }
 
 tasks.build.dependsOn shadowJar

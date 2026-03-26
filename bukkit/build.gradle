@@ -17,7 +17,9 @@ dependencies {
     implementation project(':core')
     implementation 'co.aikar:acf-paper:0.5.1-SNAPSHOT'
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    compileOnly 'me.lucko:helper:5.6.14'
+    implementation 'me.lucko:helper:5.6.14'
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
 }
 
 shadowJar {
@@ -30,6 +32,7 @@ shadowJar {
     relocate 'dev.dejvokep.boostedyaml', 'gg.desolve.kangaroo.libs.boostedyaml'
     relocate 'org.bson', 'gg.desolve.kangaroo.libs.bson'
     relocate 'org.reactivestreams', 'gg.desolve.kangaroo.libs.reactivestreams'
+    relocate 'me.lucko.helper', 'gg.desolve.kangaroo.libs.helper'
 }
 
 tasks.build.dependsOn shadowJar
