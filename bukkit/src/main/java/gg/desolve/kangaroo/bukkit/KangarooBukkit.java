@@ -1,15 +1,16 @@
 package gg.desolve.kangaroo.bukkit;
 
+import gg.desolve.kangaroo.bukkit.service.CommandService;
 import gg.desolve.kangaroo.bukkit.service.ConfigService;
 import gg.desolve.kangaroo.bukkit.service.HeartbeatService;
 import gg.desolve.kangaroo.server.ServerService;
 import gg.desolve.kangaroo.storage.ConfigStorage;
 import gg.desolve.kangaroo.storage.RedisStorage;
 import lombok.Getter;
-import org.bukkit.plugin.java.JavaPlugin;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
 @Getter
-public final class KangarooBukkit extends JavaPlugin {
+public class KangarooBukkit extends ExtendedJavaPlugin {
 
     @Getter
     private static KangarooBukkit instance;
@@ -19,7 +20,7 @@ public final class KangarooBukkit extends JavaPlugin {
     private ServerService serverService;
 
     @Override
-    public void onEnable() {
+    protected void enable() {
         instance = this;
         this.getLogger().info("Initialising Kangaroo for bukkit server...");
 
@@ -32,12 +33,13 @@ public final class KangarooBukkit extends JavaPlugin {
                 config.get("heartbeat.server-id")
         );
         serverService = new ServerService(redisStorage);
+        new CommandService(this);
 
         this.getLogger().info("Kangaroo has been enabled.");
     }
 
     @Override
-    public void onDisable() {
+    protected void disable() {
         if (heartbeatService != null) {
             heartbeatService.shutdown();
         }
