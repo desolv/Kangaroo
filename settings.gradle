@@ -1,4 +1,4 @@
-rootProject.name = 'Llama'
+rootProject.name = 'Kangaroo'
 
 include 'core'
 include 'bukkit'

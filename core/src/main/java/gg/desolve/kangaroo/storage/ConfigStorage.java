@@ -1,4 +1,4 @@
-package gg.desolve.llama.storage;
+package gg.desolve.kangaroo.storage;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;

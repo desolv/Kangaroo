@@ -1,0 +1,9 @@
+mongo:
+  uri: "mongodb://localhost:27017"
+  database: "kangaroo"
+
+redis:
+  uri: "redis://localhost:6379"
+
+heartbeat:
+  server-id: "proxy-1"

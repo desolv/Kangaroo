@@ -1,10 +1,11 @@
-package gg.desolve.llama.storage;
+package gg.desolve.kangaroo.storage;
 
 import lombok.Getter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+import java.net.URI;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -13,16 +14,12 @@ public class RedisStorage {
     @Getter
     private final JedisPool pool;
 
-    public RedisStorage(String host, int port, String password) {
+    public RedisStorage(String uri) {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(16);
         config.setMaxIdle(8);
 
-        if (password != null && !password.isEmpty()) {
-            this.pool = new JedisPool(config, host, port, 2000, password);
-        } else {
-            this.pool = new JedisPool(config, host, port);
-        }
+        this.pool = new JedisPool(config, URI.create(uri));
     }
 
     public void execute(Consumer<Jedis> action) {

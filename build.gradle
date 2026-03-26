@@ -10,6 +10,7 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven { url = "https://repo.aikar.co/content/groups/aikar/" }
     }
 
     def targetJavaVersion = 21
@@ -24,6 +25,7 @@ subprojects {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
+        options.compilerArgs += ['-parameters']
 
         if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
             options.release.set(targetJavaVersion)

@@ -1,4 +1,4 @@
-package gg.desolve.llama.storage;
+package gg.desolve.kangaroo.storage;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;

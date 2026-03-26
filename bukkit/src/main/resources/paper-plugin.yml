@@ -1,4 +1,4 @@
-name: Llama
+name: Kangaroo
 version: '1.0'
-main: gg.desolve.llama.bukkit.LlamaBukkit
+main: gg.desolve.kangaroo.bukkit.KangarooBukkit
 api-version: '1.21'
