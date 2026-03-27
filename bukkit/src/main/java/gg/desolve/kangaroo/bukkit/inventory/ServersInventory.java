@@ -16,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -54,8 +55,9 @@ public class ServersInventory {
     private void populate(PaginatedGui gui) {
         gui.clearPageItems();
 
-        KangarooBukkit.getInstance().getServerService().getAll().forEach(server ->
-                gui.addItem(serverItem(server)));
+        KangarooBukkit.getInstance().getServerService().getAll().stream()
+                .sorted(Comparator.comparingInt(server -> server.getType() == ServerType.PROXY ? 0 : 1))
+                .forEach(server -> gui.addItem(serverItem(server)));
 
         if (gui.getCurrentPageNum() > 1) {
             gui.setItem(
