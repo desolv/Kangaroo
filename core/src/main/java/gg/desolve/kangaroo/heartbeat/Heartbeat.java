@@ -11,8 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Heartbeat {
 
-    private static final String KEY_PREFIX = "kangaroo:servers:";
-    private static final int TTL_SECONDS = 10;
+    private static final int TTL_SECONDS = 15;
     private static final int INTERVAL_SECONDS = 5;
 
     private final RedisStorage redis;
@@ -34,25 +33,33 @@ public class Heartbeat {
 
     public void start() {
         publish();
-        executor.scheduleAtFixedRate(this::publish, INTERVAL_SECONDS, INTERVAL_SECONDS, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(
+                this::publish,
+                INTERVAL_SECONDS,
+                INTERVAL_SECONDS,
+                TimeUnit.SECONDS
+        );
     }
 
     public void stop() {
         executor.shutdown();
         try {
-            redis.execute(jedis -> jedis.del(KEY_PREFIX + server.getId()));
+            redis.execute(jedis ->
+                    jedis.del("kangaroo:servers:" + server.getId()));
         } catch (Exception ignored) {
         }
     }
 
     private void publish() {
         try {
-            String key = KEY_PREFIX + server.getId();
-            String json = gson.toJson(server);
+            server.setLastHeartbeat(System.currentTimeMillis());
 
-            redis.execute(jedis -> {
-                jedis.setex(key, TTL_SECONDS, json);
-            });
+            redis.execute(jedis ->
+                    jedis.setex(
+                            "kangaroo:servers:" + server.getId(),
+                            TTL_SECONDS,
+                            gson.toJson(server))
+            );
         } catch (Exception e) {
             e.printStackTrace();
         }
