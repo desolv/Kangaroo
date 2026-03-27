@@ -20,7 +20,13 @@ public class HeartbeatService {
                 serverId,
                 ServerType.SERVER,
                 Bukkit.getOnlinePlayers().size(),
-                Bukkit.getMaxPlayers()
+                Bukkit.getMaxPlayers(),
+                Bukkit.getIp().isEmpty() ? "0.0.0.0" : Bukkit.getIp(),
+                Bukkit.getPort(),
+                Bukkit.getVersion(),
+                20.0,
+                System.currentTimeMillis(),
+                0
         );
 
         this.heartbeat = new Heartbeat(redisStorage, server);
@@ -32,6 +38,7 @@ public class HeartbeatService {
                 .run(() -> {
                     heartbeat.getServer().setPlayerCount(Bukkit.getOnlinePlayers().size());
                     heartbeat.getServer().setMaxPlayers(Bukkit.getMaxPlayers());
+                    heartbeat.getServer().setTps(Bukkit.getTPS()[0]);
                 });
     }
 

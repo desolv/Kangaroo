@@ -20,7 +20,13 @@ public class HeartbeatService {
                 serverId,
                 ServerType.PROXY,
                 proxy.getPlayerCount(),
-                proxy.getConfiguration().getShowMaxPlayers()
+                proxy.getConfiguration().getShowMaxPlayers(),
+                proxy.getBoundAddress().getHostString(),
+                proxy.getBoundAddress().getPort(),
+                proxy.getVersion().toString(),
+                0.0,
+                System.currentTimeMillis(),
+                0
         );
 
         this.heartbeat = new Heartbeat(redisStorage, server);
