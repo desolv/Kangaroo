@@ -11,5 +11,11 @@ public class Server {
     private final ServerType type;
     private int playerCount;
     private int maxPlayers;
+    private final String host;
+    private final int port;
+    private final String software;
+    private double tps;
+    private final long startTime;
+    private long lastHeartbeat;
 
 }
