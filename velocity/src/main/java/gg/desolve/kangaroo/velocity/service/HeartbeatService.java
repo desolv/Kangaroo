@@ -36,7 +36,7 @@ public class HeartbeatService {
                 .sync()
                 .every(5, TimeUnit.SECONDS)
                 .run(() -> {
-                    heartbeat.getServer().setPlayerCount(proxy.getPlayerCount());
+                    heartbeat.getServer().setTotalPlayers(proxy.getPlayerCount());
                     heartbeat.getServer().setMaxPlayers(proxy.getConfiguration().getShowMaxPlayers());
                 });
     }

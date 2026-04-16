@@ -112,8 +112,8 @@ public class ServersInventory {
                     GuiUtil.text("<gray>Software: <white>" + server.getSoftware()),
                     GuiUtil.text("<gray>Uptime: <white>" + TimeUtil.formatUptime(server.getStartTime())),
                     GuiUtil.text(isProxy
-                            ? "<gray>Players: <white>" + server.getPlayerCount()
-                            : "<gray>Players: <white>" + server.getPlayerCount() + "/" + server.getMaxPlayers()),
+                            ? "<gray>Players: <white>" + server.getTotalPlayers()
+                            : "<gray>Players: <white>" + server.getTotalPlayers() + "/" + server.getMaxPlayers()),
                     !isProxy ? GuiUtil.text("<gray>TPS: <white>" + String.format("%.1f", server.getTps())) : Component.empty(),
                     Component.empty(),
                     GuiUtil.text("<gray>Host: <white>" + server.getHost() + ":" + server.getPort())

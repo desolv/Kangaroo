@@ -9,7 +9,7 @@ public class Server {
 
     private final String id;
     private final ServerType type;
-    private int playerCount;
+    private int totalPlayers;
     private int maxPlayers;
     private final String host;
     private final int port;

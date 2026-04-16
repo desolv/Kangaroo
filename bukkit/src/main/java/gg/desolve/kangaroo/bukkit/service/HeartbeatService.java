@@ -36,7 +36,7 @@ public class HeartbeatService {
                 .sync()
                 .every(5, TimeUnit.SECONDS)
                 .run(() -> {
-                    heartbeat.getServer().setPlayerCount(Bukkit.getOnlinePlayers().size());
+                    heartbeat.getServer().setTotalPlayers(Bukkit.getOnlinePlayers().size());
                     heartbeat.getServer().setMaxPlayers(Bukkit.getMaxPlayers());
                     heartbeat.getServer().setTps(Bukkit.getTPS()[0]);
                 });
