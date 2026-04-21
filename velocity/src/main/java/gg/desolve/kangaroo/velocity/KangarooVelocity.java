@@ -7,11 +7,16 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import gg.desolve.kangaroo.player.PlayerCache;
+import gg.desolve.kangaroo.player.PlayerEventSubscriber;
+import gg.desolve.kangaroo.player.PlayerService;
+import gg.desolve.kangaroo.player.PlayerWriter;
+import gg.desolve.kangaroo.server.ServerMonitor;
+import gg.desolve.kangaroo.server.ServerService;
 import gg.desolve.kangaroo.storage.ConfigStorage;
 import gg.desolve.kangaroo.storage.RedisStorage;
-import gg.desolve.kangaroo.velocity.service.CommandService;
-import gg.desolve.kangaroo.velocity.service.ConfigService;
-import gg.desolve.kangaroo.velocity.service.HeartbeatService;
+import gg.desolve.kangaroo.util.Message;
+import gg.desolve.kangaroo.velocity.service.*;
 import lombok.Getter;
 import org.slf4j.Logger;
 
@@ -32,7 +37,20 @@ public final class KangarooVelocity {
 
     private final ConfigService configService;
     private RedisStorage redisStorage;
+    private ServerService serverService;
     private HeartbeatService heartbeatService;
+    private ServerMonitor serverMonitor;
+    private PlayerService playerService;
+    private PlayerWriter playerWriter;
+    private PlayerCache playerCache;
+    private PlayerEventSubscriber playerEventSubscriber;
+    private PlayerTrackingService playerTrackingService;
+    private PlayerCleanupService playerCleanupService;
+    private RpcService rpcService;
+    private RedirectService redirectService;
+    private SentinelService sentinelService;
+    private String proxyId;
+    private long loadStartTime;
 
     @Inject
     public KangarooVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -43,25 +61,76 @@ public final class KangarooVelocity {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
+        this.loadStartTime = System.currentTimeMillis();
         instance = this;
         logger.info("Initialising Kangaroo for velocity proxy...");
 
         ConfigStorage config = configService.load("config.yml");
-
+        this.proxyId = config.get("heartbeat.server-id");
         this.redisStorage = new RedisStorage(config.get("redis.uri"));
-        this.heartbeatService = new HeartbeatService(
-                server,
-                redisStorage,
-                config.get("heartbeat.server-id")
-        );
+        this.serverService = new ServerService(redisStorage);
+        this.playerService = new PlayerService(redisStorage);
+        this.playerWriter = new PlayerWriter(redisStorage);
+        this.playerCache = new PlayerCache(playerService);
 
-        new CommandService(server, this);
+        this.heartbeatService = new HeartbeatService();
 
+        this.serverMonitor = new ServerMonitor(serverService, redisStorage, serverEvent -> {
+            String message = serverEvent.toMessage();
+            server.getAllPlayers().stream()
+                    .filter(p -> p.hasPermission("kangaroo.admin.notify"))
+                    .forEach(p -> Message.send(p, message));
+        });
+        serverMonitor.start();
+
+        playerCache.start();
+
+        this.playerEventSubscriber = new PlayerEventSubscriber(redisStorage, playerCache);
+        playerEventSubscriber.start();
+
+        this.playerTrackingService = new PlayerTrackingService();
+        playerTrackingService.start();
+
+        this.playerCleanupService = new PlayerCleanupService();
+        playerCleanupService.start();
+
+        this.rpcService = new RpcService();
+
+        this.redirectService = new RedirectService();
+        redirectService.start();
+
+        this.sentinelService = new SentinelService();
+        sentinelService.start();
+
+        new CommandService();
+
+        heartbeatService.markLoaded();
         logger.info("Kangaroo has been enabled.");
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
+        if (sentinelService != null) {
+            sentinelService.stop();
+        }
+        if (redirectService != null) {
+            redirectService.stop();
+        }
+        if (playerCleanupService != null) {
+            playerCleanupService.stop();
+        }
+        if (playerTrackingService != null) {
+            playerTrackingService.stop();
+        }
+        if (playerEventSubscriber != null) {
+            playerEventSubscriber.stop();
+        }
+        if (playerCache != null) {
+            playerCache.stop();
+        }
+        if (serverMonitor != null) {
+            serverMonitor.stop();
+        }
         if (heartbeatService != null) {
             heartbeatService.shutdown();
         }
