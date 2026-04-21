@@ -7,15 +7,12 @@ import gg.desolve.kangaroo.bukkit.service.RpcService;
 import gg.desolve.kangaroo.player.PlayerCache;
 import gg.desolve.kangaroo.player.PlayerEventSubscriber;
 import gg.desolve.kangaroo.player.PlayerService;
-import gg.desolve.kangaroo.server.ServerMonitor;
 import gg.desolve.kangaroo.server.ServerService;
 import gg.desolve.kangaroo.storage.ConfigStorage;
 import gg.desolve.kangaroo.storage.RedisStorage;
-import gg.desolve.kangaroo.util.Message;
 import lombok.Getter;
 import me.lucko.helper.Events;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
-import org.bukkit.Bukkit;
 import org.bukkit.event.server.ServerLoadEvent;
 
 @Getter
@@ -27,7 +24,6 @@ public class KangarooBukkit extends ExtendedJavaPlugin {
     private RedisStorage redisStorage;
     private HeartbeatService heartbeatService;
     private ServerService serverService;
-    private ServerMonitor serverMonitor;
     private PlayerService playerService;
     private PlayerCache playerCache;
     private PlayerEventSubscriber playerEventSubscriber;
@@ -51,14 +47,6 @@ public class KangarooBukkit extends ExtendedJavaPlugin {
         this.playerCache = new PlayerCache(playerService);
 
         this.heartbeatService = new HeartbeatService();
-
-        this.serverMonitor = new ServerMonitor(serverService, redisStorage, serverEvent -> {
-            String message = serverEvent.toMessage();
-            Bukkit.getOnlinePlayers().stream()
-                    .filter(p -> p.hasPermission("kangaroo.admin.notify"))
-                    .forEach(p -> Message.send(p, message));
-        });
-        serverMonitor.start();
 
         playerCache.start();
 
@@ -87,9 +75,6 @@ public class KangarooBukkit extends ExtendedJavaPlugin {
         }
         if (playerCache != null) {
             playerCache.stop();
-        }
-        if (serverMonitor != null) {
-            serverMonitor.stop();
         }
         if (heartbeatService != null) {
             heartbeatService.shutdown();
