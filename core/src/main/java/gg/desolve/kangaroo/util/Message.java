@@ -5,6 +5,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
+import java.util.List;
+
 public class Message {
 
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
@@ -23,5 +25,9 @@ public class Message {
 
     public static void send(Audience audience, String message, TagResolver... resolvers) {
         audience.sendMessage(translate(message, resolvers));
+    }
+
+    public static void send(Audience audience, List<String> lines) {
+        audience.sendMessage(translate(String.join("<newline>", lines)));
     }
 }
