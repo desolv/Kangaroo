@@ -22,50 +22,21 @@ GUI, event subscriptions).
 
 ## How It Works
 
-### Heartbeat Protocol
-
-Every node in the network (servers and proxies) publishes a heartbeat to Redis every 5 seconds. Each heartbeat writes a
-key with a 15-second TTL, meaning nodes that go silent are automatically pruned from the registry — no explicit
-deregistration or health-check polling required. Redis TTL expiration acts as a distributed failure detector with zero
-coordination overhead. Heartbeats carry live TPS, CPU load, player counts, and uptime.
-
-### Server Registry
-
-`ServerService` queries Redis for all active heartbeat keys and deserializes them into `Server` domain objects. This
-gives any node a consistent, near-real-time view of the entire network topology without inter-node communication.
-
-### Lifecycle Events
-
-Alongside the key-based heartbeat, nodes publish `CONNECTED`, `LOADED`, and `DISCONNECTED` events to a Redis pub/sub
-channel. `ServerMonitor` on each node consumes those events, reconciles them against the live registry, and synthesises
-`DIED` events for nodes that vanished without a clean shutdown. Events surface as in-game notifications to operators.
-
-### Player Tracking
-
-The Velocity proxy is the source of truth for online players. `PlayerTrackingService` writes a `KangarooPlayer` entry
-to Redis on login, updates the current server on transfer, and removes it on disconnect — with a 30-second heartbeat
-and TTL-based cleanup matching the server registry. Each node also maintains a local `PlayerCache` kept in sync via a
-`PlayerEvent` pub/sub channel, so lookups (`getByName`, `getByUuid`) stay O(1) without hitting Redis. A pre-login check
-rejects duplicate sessions against live proxies to prevent double-logins.
-
-### Cross-Proxy Redirect & RPC
-
-`RedirectService` lets any node ask the correct proxy to move a player to a target server. Local redirects fire
-immediately; remote ones publish a `RedirectRequest` on the owning proxy's redirect channel. `RpcService` uses the same
-pattern to dispatch `RemoteCommand`s to specific servers — powering `/execute <server> <command>` from any proxy.
-
-### Sentinel Election
-
-`SentinelService` elects a single proxy as the "sentinel" via a Redis `SET NX EX` lease with a 15-second TTL, renewed
-every 5 seconds. The sentinel is the authoritative coordinator for tasks that must run exactly once network-wide (e.g.
-cleanup sweeps); any other proxy seamlessly takes over if the lease expires.
-
-### Storage Layer
-
-Redis handles all real-time state — heartbeats, server and player registries, lifecycle events, RPC, and TTL-based
-liveness detection — with connections managed through Jedis pooling and a dedicated pub/sub subscription pool. MongoDB
-serves as the persistent storage layer using the Reactive Streams async driver for non-blocking I/O. Per-node
-configuration is managed through YAML files.
+- **Heartbeat** — Every node writes a Redis key every 5s with a 15s TTL. Silent nodes are auto-pruned; TTL expiration
+  doubles as the failure detector. Payload carries TPS, CPU, player counts, and uptime.
+- **Server registry** — `ServerService` reads the live heartbeat keys to give any node a consistent view of the
+  network without inter-node chatter.
+- **Lifecycle events** — Nodes publish `CONNECTED` / `LOADED` / `DISCONNECTED` on pub/sub. `ServerMonitor` reconciles
+  them against the registry and synthesises `DIED` for unclean exits. Surfaced as in-game notifications.
+- **Player tracking** — Velocity owns player state: written on login, updated on transfer, removed on disconnect, with
+  a 30s heartbeat/TTL. Nodes keep a local `PlayerCache` synced via pub/sub for O(1) lookups. Pre-login rejects
+  duplicate sessions across live proxies.
+- **Redirect & RPC** — `RedirectService` routes player moves to the owning proxy (local fires immediately, remote via
+  pub/sub). `RpcService` uses the same channel pattern to dispatch commands to specific servers.
+- **Sentinel election** — One proxy holds a `SET NX EX` lease (15s TTL, renewed every 5s) as the sole coordinator for
+  network-wide tasks. Failover is automatic on lease expiry.
+- **Storage** — Redis (Jedis pool + dedicated pub/sub pool) for real-time state; MongoDB Reactive Streams for
+  persistence; YAML per-node config.
 
 ## Commands
 
