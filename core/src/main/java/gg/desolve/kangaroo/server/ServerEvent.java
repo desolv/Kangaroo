@@ -14,12 +14,12 @@ public class ServerEvent {
     private final long timestamp;
 
     public String toMessage() {
-        String prefix = "<gold><bold>Kangaroo</bold> &7»";
+        String prefix = "<yellow>[Kangaroo] <gray>";
         String color = serverType == ServerType.PROXY ? "<aqua>" : "<green>";
 
         return switch (type) {
             case CONNECTED -> prefix + "<green>" + color + serverId + " <gray>has connected.";
-            case LOADED -> prefix + "<green>" + color + serverId + " <gray>has loaded. <dark_gray>(in <white>"
+            case LOADED -> prefix + "<green>" + color + serverId + " <gray>has loaded. <dark_gray>(in "
                     + loadTimeMs + "ms<dark_gray>)";
             case DISCONNECTED -> prefix + "<red>" + serverId + " <gray>was manually stopped.";
             case DIED -> prefix + "<red>" + serverId + " <gray>has died. <dark_gray>(no heartbeat)";

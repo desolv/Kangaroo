@@ -54,8 +54,14 @@ public class ServerService {
 
     public Optional<Server> getByAddress(String host, int port) {
         return getServers().stream()
-                .filter(server -> server.getPort() == port && server.getHost().equalsIgnoreCase(host))
+                .filter(server -> server.getPort() == port && hostMatches(server.getHost(), host))
                 .findFirst();
+    }
+
+    private static boolean hostMatches(String serverHost, String queryHost) {
+        if (serverHost == null || serverHost.isEmpty()) return true;
+        if (serverHost.equals("0.0.0.0") || serverHost.equals("::") || serverHost.equals("::0")) return true;
+        return serverHost.equalsIgnoreCase(queryHost);
     }
 
     public Optional<Server> getSentinelProxy() {
