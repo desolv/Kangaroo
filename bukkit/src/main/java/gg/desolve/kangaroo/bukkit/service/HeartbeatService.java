@@ -1,9 +1,10 @@
 package gg.desolve.kangaroo.bukkit.service;
 
+import gg.desolve.kangaroo.bukkit.KangarooBukkit;
 import gg.desolve.kangaroo.heartbeat.Heartbeat;
 import gg.desolve.kangaroo.server.Server;
 import gg.desolve.kangaroo.server.ServerType;
-import gg.desolve.kangaroo.storage.RedisStorage;
+import gg.desolve.kangaroo.util.CpuUtil;
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.scheduler.Task;
 import org.bukkit.Bukkit;
@@ -15,9 +16,11 @@ public class HeartbeatService {
     private final Heartbeat heartbeat;
     private final Task task;
 
-    public HeartbeatService(RedisStorage redisStorage, String serverId) {
+    public HeartbeatService() {
+        KangarooBukkit plugin = KangarooBukkit.getInstance();
+
         Server server = new Server(
-                serverId,
+                plugin.getServerId(),
                 ServerType.SERVER,
                 Bukkit.getOnlinePlayers().size(),
                 Bukkit.getMaxPlayers(),
@@ -25,11 +28,12 @@ public class HeartbeatService {
                 Bukkit.getPort(),
                 Bukkit.getVersion(),
                 20.0,
+                0.0,
                 System.currentTimeMillis(),
                 0
         );
 
-        this.heartbeat = new Heartbeat(redisStorage, server);
+        this.heartbeat = new Heartbeat(plugin.getRedisStorage(), server, plugin.getLoadStartTime());
         heartbeat.start();
 
         this.task = Schedulers.builder()
@@ -39,7 +43,12 @@ public class HeartbeatService {
                     heartbeat.getServer().setTotalPlayers(Bukkit.getOnlinePlayers().size());
                     heartbeat.getServer().setMaxPlayers(Bukkit.getMaxPlayers());
                     heartbeat.getServer().setTps(Bukkit.getTPS()[0]);
+                    heartbeat.getServer().setCpu(CpuUtil.processLoadPercent());
                 });
+    }
+
+    public void markLoaded() {
+        heartbeat.markLoaded();
     }
 
     public void shutdown() {

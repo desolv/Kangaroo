@@ -115,6 +115,7 @@ public class ServersInventory {
                             ? "<gray>Players: <white>" + server.getTotalPlayers()
                             : "<gray>Players: <white>" + server.getTotalPlayers() + "/" + server.getMaxPlayers()),
                     !isProxy ? GuiUtil.text("<gray>TPS: <white>" + String.format("%.1f", server.getTps())) : Component.empty(),
+                    GuiUtil.text("<gray>CPU: <white>" + String.format("%.1f", server.getCpu()) + "%"),
                     Component.empty(),
                     GuiUtil.text("<gray>Host: <white>" + server.getHost() + ":" + server.getPort())
             ));

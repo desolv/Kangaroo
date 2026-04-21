@@ -1,8 +1,10 @@
 package gg.desolve.kangaroo.heartbeat;
 
-import com.google.gson.Gson;
 import gg.desolve.kangaroo.server.Server;
+import gg.desolve.kangaroo.server.ServerEvent;
+import gg.desolve.kangaroo.server.ServerEventType;
 import gg.desolve.kangaroo.storage.RedisStorage;
+import gg.desolve.kangaroo.util.JsonUtil;
 import lombok.Getter;
 
 import java.util.concurrent.Executors;
@@ -11,19 +13,16 @@ import java.util.concurrent.TimeUnit;
 
 public class Heartbeat {
 
-    private static final int TTL_SECONDS = 15;
-    private static final int INTERVAL_SECONDS = 5;
-
     private final RedisStorage redis;
-    private final Gson gson;
     @Getter
     private final Server server;
+    private final long loadStartTime;
     private final ScheduledExecutorService executor;
 
-    public Heartbeat(RedisStorage redis, Server server) {
+    public Heartbeat(RedisStorage redis, Server server, long loadStartTime) {
         this.redis = redis;
-        this.gson = new Gson();
         this.server = server;
+        this.loadStartTime = loadStartTime;
         this.executor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread thread = new Thread(r, "kangaroo-heartbeat");
             thread.setDaemon(true);
@@ -33,19 +32,24 @@ public class Heartbeat {
 
     public void start() {
         publish();
+        publishServerEvent(ServerEventType.CONNECTED, 0);
         executor.scheduleAtFixedRate(
                 this::publish,
-                INTERVAL_SECONDS,
-                INTERVAL_SECONDS,
+                5,
+                5,
                 TimeUnit.SECONDS
         );
+    }
+
+    public void markLoaded() {
+        publishServerEvent(ServerEventType.LOADED, System.currentTimeMillis() - loadStartTime);
     }
 
     public void stop() {
         executor.shutdown();
         try {
-            redis.execute(jedis ->
-                    jedis.del("kangaroo:servers:" + server.getId()));
+            publishServerEvent(ServerEventType.DISCONNECTED, 0);
+            redis.execute(jedis -> jedis.del("kangaroo:servers:" + server.getId()));
         } catch (Exception ignored) {
         }
     }
@@ -53,15 +57,24 @@ public class Heartbeat {
     private void publish() {
         try {
             server.setLastHeartbeat(System.currentTimeMillis());
-
             redis.execute(jedis ->
-                    jedis.setex(
-                            "kangaroo:servers:" + server.getId(),
-                            TTL_SECONDS,
-                            gson.toJson(server))
-            );
+                    jedis.setex("kangaroo:servers:" + server.getId(), 15, JsonUtil.GSON.toJson(server)));
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void publishServerEvent(ServerEventType type, long loadTimeMs) {
+        try {
+            ServerEvent event = new ServerEvent(
+                    type,
+                    server.getId(),
+                    server.getType(),
+                    loadTimeMs,
+                    System.currentTimeMillis()
+            );
+            redis.publish("kangaroo:server-events", JsonUtil.GSON.toJson(event));
+        } catch (Exception ignored) {
         }
     }
 }

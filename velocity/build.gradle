@@ -7,10 +7,6 @@ repositories {
         name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
     }
-    maven {
-        name = "lucko-repo"
-        url = "https://repo.lucko.me/"
-    }
 }
 
 dependencies {
@@ -18,7 +14,6 @@ dependencies {
     implementation 'co.aikar:acf-velocity:0.5.1-SNAPSHOT'
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-    implementation 'me.lucko:helper:5.6.14'
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
 }
@@ -29,11 +24,11 @@ shadowJar {
     relocate 'co.aikar.locales', 'gg.desolve.kangaroo.libs.locales'
     relocate 'com.mongodb', 'gg.desolve.kangaroo.libs.mongodb'
     relocate 'redis.clients', 'gg.desolve.kangaroo.libs.redis'
+    relocate 'org.apache.commons.pool2', 'gg.desolve.kangaroo.libs.commons.pool2'
     relocate 'com.google.gson', 'gg.desolve.kangaroo.libs.gson'
     relocate 'dev.dejvokep.boostedyaml', 'gg.desolve.kangaroo.libs.boostedyaml'
     relocate 'org.bson', 'gg.desolve.kangaroo.libs.bson'
     relocate 'org.reactivestreams', 'gg.desolve.kangaroo.libs.reactivestreams'
-    relocate 'me.lucko.helper', 'gg.desolve.kangaroo.libs.helper'
 }
 
 tasks.build.dependsOn shadowJar

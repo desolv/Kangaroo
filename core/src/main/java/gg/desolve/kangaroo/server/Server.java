@@ -15,6 +15,7 @@ public class Server {
     private final int port;
     private final String software;
     private double tps;
+    private double cpu;
     private final long startTime;
     private long lastHeartbeat;
 

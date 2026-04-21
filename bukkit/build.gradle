@@ -33,6 +33,7 @@ shadowJar {
     relocate 'co.aikar.locales', 'gg.desolve.kangaroo.libs.locales'
     relocate 'com.mongodb', 'gg.desolve.kangaroo.libs.mongodb'
     relocate 'redis.clients', 'gg.desolve.kangaroo.libs.redis'
+    relocate 'org.apache.commons.pool2', 'gg.desolve.kangaroo.libs.commons.pool2'
     relocate 'com.google.gson', 'gg.desolve.kangaroo.libs.gson'
     relocate 'dev.dejvokep.boostedyaml', 'gg.desolve.kangaroo.libs.boostedyaml'
     relocate 'org.bson', 'gg.desolve.kangaroo.libs.bson'
