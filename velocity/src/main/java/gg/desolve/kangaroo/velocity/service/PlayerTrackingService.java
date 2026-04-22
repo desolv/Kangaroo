@@ -1,6 +1,5 @@
 package gg.desolve.kangaroo.velocity.service;
 
-import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
@@ -46,7 +45,7 @@ public class PlayerTrackingService {
         plugin.getPlayerWriter().removeAllByProxy(plugin.getProxyId());
     }
 
-    @Subscribe(order = PostOrder.EARLY)
+    @Subscribe(priority = 1000)
     public void onPreLogin(PreLoginEvent event) {
         if (!event.getResult().isAllowed()) return;
 
