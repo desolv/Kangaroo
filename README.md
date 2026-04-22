@@ -7,7 +7,7 @@ persistent storage.
 
 ## Architecture
 
-Kangaroo is a multi-module Gradle project split into three modules:
+Kangaroo is a multi-module Gradle project split into four modules:
 
 - **core** — Platform-agnostic shared library containing the server and player domain models, heartbeat protocol,
   lifecycle-event bus, RPC envelopes, and storage clients (Redis, MongoDB, YAML config). Both platform modules depend on
@@ -16,6 +16,8 @@ Kangaroo is a multi-module Gradle project split into three modules:
   command execution.
 - **velocity** — Velocity proxy plugin handling proxy-side heartbeat publishing, player tracking, cross-proxy redirects,
   sentinel election, and admin commands.
+- **deployment** — Gradle plugin (`gg.desolve.kangaroo.deployment`) that adds a `publishPlugin` task to the `bukkit` and
+  `velocity` modules, uploading the shadowed jar over SFTP to a configurable set of targets.
 
 Platform-specific modules depend on core and implement only what is unique to their runtime (plugin lifecycle, commands,
 GUI, event subscriptions).
@@ -65,3 +67,47 @@ commands. The Velocity module targets Velocity 3.4.0 with a plain `ScheduledExec
 
 Artifacts are output per module. Dependencies are relocated under the project namespace to avoid classpath conflicts
 with other plugins.
+
+## Deployment
+
+The `deployment` module is a bundled Gradle plugin that ships the shadowed jars to remote hosts over SFTP. Each platform
+module applies it and declares a group key — `bukkit` for the Paper plugin, `proxy` for the Velocity plugin — which
+selects the set of targets to upload to.
+
+Copy `servers.example.json` to `servers.json` at the repo root and fill in your targets, keyed by group:
+
+```json
+{
+  "bukkit": [
+    {
+      "name": "lobby-1",
+      "host": "node.example.com",
+      "port": 2022,
+      "user": "abcdef01.1",
+      "privateKey": "~/.ssh/id_ed25519",
+      "remotePath": "/plugins"
+    }
+  ],
+  "proxy": [
+    {
+      "name": "proxy-1",
+      "host": "node.example.com",
+      "user": "abcdef01.99",
+      "privateKey": "~/.ssh/id_ed25519"
+    }
+  ]
+}
+```
+
+Each target needs `name`, `host`, and `user`, plus exactly one of `password` or `privateKey` (paths support `~`
+expansion). `port` defaults to `2022` and `remotePath` defaults to `/plugins`. `servers.json` is gitignored.
+
+Publish with:
+
+```bash
+./gradlew :bukkit:publishPlugin     # uploads the bukkit shadow jar to every 'bukkit' target
+./gradlew :velocity:publishPlugin   # uploads the velocity shadow jar to every 'proxy' target
+```
+
+The task builds the shadow jar first, then uploads in sequence and reports per-target success, timing, and failures.
+Missing groups are skipped with a warning; a missing `servers.json` fails the build with a clear message.
