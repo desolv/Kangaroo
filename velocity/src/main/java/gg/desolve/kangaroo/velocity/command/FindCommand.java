@@ -18,7 +18,6 @@ public class FindCommand extends BaseCommand {
         Audience audience = issuer.getIssuer();
 
         Message.send(audience, "<yellow>" + player.getName() + " is connected to <green>"
-                + player.getServer()
-                + " <yellow>via <green>" + player.getProxy() + "<yellow>.");
+                + player.getServer() + " <yellow>via <green>" + player.getProxy() + "<yellow>.");
     }
 }

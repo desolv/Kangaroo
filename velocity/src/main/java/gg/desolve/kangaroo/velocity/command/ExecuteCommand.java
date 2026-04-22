@@ -25,7 +25,7 @@ public class ExecuteCommand extends BaseCommand {
         }
 
         KangarooVelocity.getInstance().getRpcService().executeOnServer(target.getId(), command);
-        Message.send(audience, "<green>Executed <yellow>" + command
-                + " <green>on <orange>" + target.getId() + "<yellow>.");
+        Message.send(audience, "<yellow>Executed <green>" + command
+                + " <yellow>on <green>" + target.getId() + "<yellow>.");
     }
 }
