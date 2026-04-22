@@ -16,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -101,29 +102,35 @@ public class ServersInventory {
                 ? TimeUtil.secondsAgo(server.getLastHeartbeat()) + "s ago"
                 : "Unknown";
 
-        String groupsText = (server.getGroups() == null || server.getGroups().isEmpty())
-                ? "None"
-                : String.join(", ", server.getGroups());
-
         ItemStack stack = new ItemStack(material);
         stack.editMeta(meta -> {
             meta.displayName(GuiUtil.text(color + "<bold>" + server.getId()));
 
-            meta.lore(List.of(
-                    GuiUtil.text("<dark_gray>Last heartbeat " + heartbeatText + ".."),
-                    Component.empty(),
-                    GuiUtil.text("<gray>Type: <white>" + server.getType().name()),
-                    GuiUtil.text("<gray>Groups: <white>" + groupsText),
-                    GuiUtil.text("<gray>Software: <white>" + server.getSoftware()),
-                    GuiUtil.text("<gray>Uptime: <white>" + TimeUtil.formatUptime(server.getStartTime())),
-                    GuiUtil.text(isProxy
-                            ? "<gray>Players: <white>" + server.getTotalPlayers()
-                            : "<gray>Players: <white>" + server.getTotalPlayers() + "/" + server.getMaxPlayers()),
-                    !isProxy ? GuiUtil.text("<gray>TPS: <white>" + String.format("%.1f", server.getTps())) : Component.empty(),
-                    GuiUtil.text("<gray>CPU: <white>" + String.format("%.1f", server.getCpu()) + "%"),
-                    Component.empty(),
-                    GuiUtil.text("<gray>Host: <white>" + server.getHost() + ":" + server.getPort())
-            ));
+            List<Component> lore = new ArrayList<>();
+            lore.add(GuiUtil.text("<dark_gray>Last heartbeat " + heartbeatText + ".."));
+            lore.add(Component.empty());
+
+            lore.add(GuiUtil.text(color + "Server Identifier"));
+            lore.add(GuiUtil.text("<gray>Uptime: <white>" + TimeUtil.formatUptime(server.getStartTime())));
+            lore.add(GuiUtil.text("<gray>Groups:"));
+            server.getGroups().forEach(group -> lore.add(GuiUtil.text("<gray>- <white>" + group)));
+            lore.add(Component.empty());
+
+            lore.add(GuiUtil.text(color + "Network"));
+            lore.add(GuiUtil.text("<gray>Host: <white>" + server.getHost()));
+            lore.add(GuiUtil.text("<gray>Port: <white>" + server.getPort()));
+            lore.add(GuiUtil.text(isProxy
+                    ? "<gray>Players: <white>" + server.getTotalPlayers()
+                    : "<gray>Players: <white>" + server.getTotalPlayers() + "/" + server.getMaxPlayers()));
+            lore.add(Component.empty());
+
+            lore.add(GuiUtil.text(color + "Performance"));
+            lore.add(GuiUtil.text("<gray>Software: <white>" + server.getSoftware()));
+            lore.add(GuiUtil.text("<gray>CPU: <white>" + String.format("%.1f", server.getCpu()) + "%"));
+            if (!isProxy)
+                lore.add(GuiUtil.text("<gray>TPS: <white>" + String.format("%.1f", server.getTps())));
+
+            meta.lore(lore);
         });
 
         return new GuiItem(stack);
