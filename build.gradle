@@ -32,3 +32,9 @@ subprojects {
         }
     }
 }
+
+tasks.register('publishPlugins') {
+    group = 'publishing'
+    description = 'Deploy bukkit + velocity shadow jars to all configured SFTP targets'
+    dependsOn ':bukkit:publishPlugin', ':velocity:publishPlugin'
+}

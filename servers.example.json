@@ -1,0 +1,26 @@
+{
+  "bukkit": [
+    {
+      "name": "lobby-1",
+      "host": "node.example.com",
+      "port": 2022,
+      "user": "abcdef01.1",
+      "privateKey": "~/.ssh/id_ed25519",
+      "remotePath": "/plugins"
+    },
+    {
+      "name": "survival-1",
+      "host": "node.example.com",
+      "user": "abcdef01.2",
+      "password": "hunter2"
+    }
+  ],
+  "proxy": [
+    {
+      "name": "proxy-1",
+      "host": "node.example.com",
+      "user": "abcdef01.99",
+      "privateKey": "~/.ssh/id_ed25519"
+    }
+  ]
+}

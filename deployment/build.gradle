@@ -1,0 +1,32 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+group = 'gg.desolve.kangaroo'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.hierynomus:sshj:0.40.0'
+    implementation 'com.google.code.gson:gson:2.11.0'
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+gradlePlugin {
+    plugins {
+        deployment {
+            id = 'gg.desolve.kangaroo.deployment'
+            implementationClass = 'gg.desolve.kangaroo.deployment.gradle.DeploymentPlugin'
+        }
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
