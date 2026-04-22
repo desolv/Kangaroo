@@ -34,7 +34,7 @@ Java 21 · Gradle (Shadow) · Jedis · MongoDB · Paper 1.21 · Velocity 3.4
 ./gradlew shadowJar
 ```
 
-## Deploy
+## Deployment
 
 The bundled `deployment` Gradle plugin uploads shadow jars over SFTP. Copy `servers.example.json` to `servers.json` and
 fill in your targets, keyed by group (`bukkit` or `proxy`):
@@ -46,7 +46,7 @@ fill in your targets, keyed by group (`bukkit` or `proxy`):
       "name": "lobby-1",
       "host": "node.example.com",
       "user": "abcdef01.1",
-      "password": "admin123"
+      "privateKey": "~/.ssh/id_ed25519"
     }
   ],
   "proxy": [
@@ -60,8 +60,8 @@ fill in your targets, keyed by group (`bukkit` or `proxy`):
 }
 ```
 
-Each target needs `name`, `host`, `user`, plus one of `password` or `privateKey`. `port` defaults to `2022`,
-`remotePath` to `/plugins`. `servers.json` is gitignored.
+Each target needs `name`, `host`, `user`, plus one of `password` or `privateKey`. `port` defaults to `2022`,`remotePath`
+to `/plugins`. `servers.json` is gitignored.
 
 ```bash
 ./gradlew :bukkit:publishPlugin     # → every 'bukkit' target
