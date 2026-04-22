@@ -101,6 +101,10 @@ public class ServersInventory {
                 ? TimeUtil.secondsAgo(server.getLastHeartbeat()) + "s ago"
                 : "Unknown";
 
+        String groupsText = (server.getGroups() == null || server.getGroups().isEmpty())
+                ? "None"
+                : String.join(", ", server.getGroups());
+
         ItemStack stack = new ItemStack(material);
         stack.editMeta(meta -> {
             meta.displayName(GuiUtil.text(color + "<bold>" + server.getId()));
@@ -109,6 +113,7 @@ public class ServersInventory {
                     GuiUtil.text("<dark_gray>Last heartbeat " + heartbeatText + ".."),
                     Component.empty(),
                     GuiUtil.text("<gray>Type: <white>" + server.getType().name()),
+                    GuiUtil.text("<gray>Groups: <white>" + groupsText),
                     GuiUtil.text("<gray>Software: <white>" + server.getSoftware()),
                     GuiUtil.text("<gray>Uptime: <white>" + TimeUtil.formatUptime(server.getStartTime())),
                     GuiUtil.text(isProxy

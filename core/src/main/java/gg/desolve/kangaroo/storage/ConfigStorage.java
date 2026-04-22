@@ -10,6 +10,7 @@ import lombok.Getter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class ConfigStorage {
 
@@ -35,6 +36,10 @@ public class ConfigStorage {
     @SuppressWarnings("unchecked")
     public <T> T get(String path, T defaultValue) {
         return (T) document.getOptional(path).orElse(defaultValue);
+    }
+
+    public List<String> getStringList(String path) {
+        return document.getStringList(path);
     }
 
     public void set(String path, Object value) {

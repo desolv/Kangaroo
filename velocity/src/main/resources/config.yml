@@ -5,5 +5,7 @@ mongo:
 redis:
   uri: "redis://localhost:6379"
 
-heartbeat:
-  server-id: "proxy-1"
+server:
+  id: "proxy-1"
+  groups:
+    - "default"

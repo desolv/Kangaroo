@@ -7,6 +7,7 @@ import gg.desolve.kangaroo.server.ServerType;
 import gg.desolve.kangaroo.util.CpuUtil;
 import gg.desolve.kangaroo.velocity.KangarooVelocity;
 
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -16,12 +17,13 @@ public class HeartbeatService {
     private final Heartbeat heartbeat;
     private final ScheduledExecutorService executor;
 
-    public HeartbeatService() {
+    public HeartbeatService(List<String> groups) {
         KangarooVelocity plugin = KangarooVelocity.getInstance();
         ProxyServer proxy = plugin.getServer();
 
         Server server = new Server(
                 plugin.getProxyId(),
+                groups,
                 ServerType.PROXY,
                 proxy.getPlayerCount(),
                 proxy.getConfiguration().getShowMaxPlayers(),

@@ -66,14 +66,14 @@ public final class KangarooVelocity {
         logger.info("Initialising Kangaroo for velocity proxy...");
 
         ConfigStorage config = configService.load("config.yml");
-        this.proxyId = config.get("heartbeat.server-id");
+        this.proxyId = config.get("server.id");
         this.redisStorage = new RedisStorage(config.get("redis.uri"));
         this.serverService = new ServerService(redisStorage);
         this.playerService = new PlayerService(redisStorage);
         this.playerWriter = new PlayerWriter(redisStorage);
         this.playerCache = new PlayerCache(playerService);
 
-        this.heartbeatService = new HeartbeatService();
+        this.heartbeatService = new HeartbeatService(config.getStringList("server.groups"));
 
         this.serverMonitor = new ServerMonitor(serverService, redisStorage, serverEvent -> {
             String message = serverEvent.toMessage();

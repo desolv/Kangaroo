@@ -3,11 +3,14 @@ package gg.desolve.kangaroo.server;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 public class Server {
 
     private final String id;
+    private final List<String> groups;
     private final ServerType type;
     private int totalPlayers;
     private int maxPlayers;

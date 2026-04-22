@@ -40,13 +40,13 @@ public class KangarooBukkit extends ExtendedJavaPlugin {
         configService = new ConfigService(this);
         ConfigStorage config = configService.load("config.yml");
 
-        this.serverId = config.get("heartbeat.server-id");
+        this.serverId = config.get("server.id");
         this.redisStorage = new RedisStorage(config.get("redis.uri"));
         this.serverService = new ServerService(redisStorage);
         this.playerService = new PlayerService(redisStorage);
         this.playerCache = new PlayerCache(playerService);
 
-        this.heartbeatService = new HeartbeatService();
+        this.heartbeatService = new HeartbeatService(config.getStringList("server.groups"));
 
         playerCache.start();
 

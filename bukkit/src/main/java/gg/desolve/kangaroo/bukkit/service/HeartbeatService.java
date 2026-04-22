@@ -9,6 +9,7 @@ import me.lucko.helper.Schedulers;
 import me.lucko.helper.scheduler.Task;
 import org.bukkit.Bukkit;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class HeartbeatService {
@@ -16,11 +17,12 @@ public class HeartbeatService {
     private final Heartbeat heartbeat;
     private final Task task;
 
-    public HeartbeatService() {
+    public HeartbeatService(List<String> groups) {
         KangarooBukkit plugin = KangarooBukkit.getInstance();
 
         Server server = new Server(
                 plugin.getServerId(),
+                groups,
                 ServerType.SERVER,
                 Bukkit.getOnlinePlayers().size(),
                 Bukkit.getMaxPlayers(),
