@@ -8,7 +8,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -26,19 +26,21 @@ public abstract class DeploymentTask extends DefaultTask {
     @Input
     public abstract Property<String> getGroupKey();
 
-    @Internal
-    public File getConfigRoot() {
-        return getProject().getRootDir();
-    }
+    @InputFile
+    @Optional
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    public abstract RegularFileProperty getConfigFile();
 
     @TaskAction
     public void deploy() {
         String key = getGroupKey().get();
         File artifact = getArtifact().get().getAsFile();
+        File configFile = getConfigFile().getAsFile()
+                .getOrElse(new File(getProject().getRootDir(), "servers.json"));
 
         Map<String, List<DeploymentTarget>> config;
         try {
-            config = Deployer.loadConfig(getConfigRoot());
+            config = Deployer.loadConfig(configFile);
         } catch (RuntimeException e) {
             throw new GradleException(e.getMessage(), e);
         }

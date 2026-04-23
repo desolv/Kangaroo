@@ -2,6 +2,8 @@ package gg.desolve.kangaroo.deployment.gradle;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.tasks.Jar;
 
@@ -17,7 +19,17 @@ public class DeploymentPlugin implements Plugin<Project> {
                     task.setGroup("publishing");
                     task.setDescription("Upload the shadowed plugin jar over SFTP to every configured target");
                     task.getGroupKey().set(extension.getGroupKey());
+                    task.getConfigFile().set(extension.getConfigFile());
                 });
+
+        TaskContainer rootTasks = project.getRootProject().getTasks();
+        TaskProvider<Task> aggregate = rootTasks.getNames().contains("publishPlugins")
+                ? rootTasks.named("publishPlugins")
+                : rootTasks.register("publishPlugins", t -> {
+                    t.setGroup("publishing");
+                    t.setDescription("Deploy all shadow jars to their configured SFTP targets");
+                });
+        aggregate.configure(t -> t.dependsOn(taskProvider));
 
         project.afterEvaluate(evaluatedProject -> {
             TaskProvider<Jar> shadow = evaluatedProject.getTasks().named("shadowJar", Jar.class);

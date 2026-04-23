@@ -20,22 +20,19 @@ import java.util.Map;
 public final class Deployer {
 
     private static final Gson GSON = new Gson();
-    private static final Type ROOT_TYPE = new TypeToken<Map<String, Object>>() {}.getType();
+    private static final Type ROOT_TYPE = new TypeToken<Map<String, Object>>() {
+    }.getType();
 
-    private Deployer() {
-    }
-
-    public static Map<String, List<DeploymentTarget>> loadConfig(File rootDir) {
-        File file = new File(rootDir, "servers.json");
-        if (!file.isFile()) {
+    public static Map<String, List<DeploymentTarget>> loadConfig(File configFile) {
+        if (!configFile.isFile()) {
             throw new IllegalStateException(
-                    "missing servers.json in " + rootDir.getAbsolutePath()
+                    "missing " + configFile.getName() + " at " + configFile.getAbsolutePath()
                             + " — copy servers.example.json and fill it in");
         }
         try {
-            return parseConfig(Files.readString(file.toPath()));
+            return parseConfig(Files.readString(configFile.toPath()));
         } catch (IOException e) {
-            throw new IllegalStateException("failed to read " + file.getAbsolutePath(), e);
+            throw new IllegalStateException("failed to read " + configFile.getAbsolutePath(), e);
         }
     }
 
