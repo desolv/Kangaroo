@@ -1,33 +1,23 @@
 package gg.desolve.kangaroo.velocity.service;
 
 import gg.desolve.kangaroo.player.KangarooPlayer;
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.server.Server;
 import gg.desolve.kangaroo.velocity.KangarooVelocity;
 
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class PlayerCleanupService {
 
-    private final ScheduledExecutorService executor;
-
-    public PlayerCleanupService() {
-        this.executor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "kangaroo-player-cleanup");
-            thread.setDaemon(true);
-            return thread;
-        });
-    }
+    private KangarooScheduler.ScheduledTask task;
 
     public void start() {
-        executor.scheduleAtFixedRate(this::cleanup, 10, 10, TimeUnit.SECONDS);
+        this.task = KangarooVelocity.getInstance().getScheduler().scheduleRepeating(this::cleanup, 10, 10);
     }
 
     public void stop() {
-        executor.shutdown();
+        if (task != null) task.cancel();
     }
 
     private void cleanup() {

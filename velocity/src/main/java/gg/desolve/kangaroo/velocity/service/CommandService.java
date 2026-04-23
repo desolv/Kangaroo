@@ -18,8 +18,9 @@ public class CommandService {
     private final VelocityCommandManager commandManager;
 
     public CommandService() {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
-        this.commandManager = new VelocityCommandManager(plugin.getServer(), plugin);
+        this.commandManager = new VelocityCommandManager(
+                KangarooVelocity.getInstance().getServer(),
+                KangarooVelocity.getInstance());
         this.commandManager.enableUnstableAPI("help");
 
         registerContexts();
@@ -39,8 +40,8 @@ public class CommandService {
     }
 
     private void registerContexts() {
-        commandManager.getCommandContexts().registerContext(KangarooPlayer.class, c -> {
-            String name = c.popFirstArg();
+        commandManager.getCommandContexts().registerContext(KangarooPlayer.class, context -> {
+            String name = context.popFirstArg();
             KangarooPlayer player = KangarooVelocity.getInstance().getPlayerCache().getByName(name);
             if (player == null) {
                 throw new InvalidCommandArgument("No player named '" + name + "' is online.");
@@ -48,14 +49,14 @@ public class CommandService {
             return player;
         });
 
-        commandManager.getCommandContexts().registerContext(Server.class, c -> {
-            String id = c.popFirstArg();
+        commandManager.getCommandContexts().registerContext(Server.class, context -> {
+            String id = context.popFirstArg();
             return KangarooVelocity.getInstance().getServerService().getById(id)
                     .orElseThrow(() -> new InvalidCommandArgument("No server found with id '" + id + "'."));
         });
 
-        commandManager.getCommandContexts().registerContext(Duration.class, c -> {
-            String input = c.popFirstArg();
+        commandManager.getCommandContexts().registerContext(Duration.class, context -> {
+            String input = context.popFirstArg();
             try {
                 return Duration.parse(input);
             } catch (IllegalArgumentException exception) {
@@ -65,15 +66,15 @@ public class CommandService {
     }
 
     private void registerCompletions() {
-        commandManager.getCommandCompletions().registerCompletion("players", c ->
+        commandManager.getCommandCompletions().registerCompletion("players", context ->
                 KangarooVelocity.getInstance().getPlayerCache().getAll().stream()
                         .map(KangarooPlayer::getName).toList());
 
-        commandManager.getCommandCompletions().registerCompletion("servers", c ->
+        commandManager.getCommandCompletions().registerCompletion("servers", context ->
                 KangarooVelocity.getInstance().getServerService().getServers().stream()
                         .map(Server::getId).toList());
 
-        commandManager.getCommandCompletions().registerCompletion("proxies", c ->
+        commandManager.getCommandCompletions().registerCompletion("proxies", context ->
                 KangarooVelocity.getInstance().getServerService().getProxies().stream()
                         .map(Server::getId).toList());
 

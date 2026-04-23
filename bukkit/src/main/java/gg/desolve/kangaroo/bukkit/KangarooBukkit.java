@@ -1,5 +1,6 @@
 package gg.desolve.kangaroo.bukkit;
 
+import gg.desolve.kangaroo.bukkit.scheduler.HelperScheduler;
 import gg.desolve.kangaroo.bukkit.service.CommandService;
 import gg.desolve.kangaroo.bukkit.service.ConfigService;
 import gg.desolve.kangaroo.bukkit.service.HeartbeatService;
@@ -7,6 +8,7 @@ import gg.desolve.kangaroo.bukkit.service.RpcService;
 import gg.desolve.kangaroo.player.PlayerCache;
 import gg.desolve.kangaroo.player.PlayerEventSubscriber;
 import gg.desolve.kangaroo.player.PlayerService;
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.server.ServerService;
 import gg.desolve.kangaroo.storage.ConfigStorage;
 import gg.desolve.kangaroo.storage.RedisStorage;
@@ -22,6 +24,7 @@ public class KangarooBukkit extends ExtendedJavaPlugin {
     private static KangarooBukkit instance;
     private ConfigService configService;
     private RedisStorage redisStorage;
+    private KangarooScheduler scheduler;
     private HeartbeatService heartbeatService;
     private ServerService serverService;
     private PlayerService playerService;
@@ -42,9 +45,10 @@ public class KangarooBukkit extends ExtendedJavaPlugin {
 
         this.serverId = config.get("server.id");
         this.redisStorage = new RedisStorage(config.get("redis.uri"));
+        this.scheduler = new HelperScheduler();
         this.serverService = new ServerService(redisStorage);
         this.playerService = new PlayerService(redisStorage);
-        this.playerCache = new PlayerCache(playerService);
+        this.playerCache = new PlayerCache(playerService, scheduler);
 
         this.heartbeatService = new HeartbeatService(config.getStringList("server.groups"));
 
@@ -59,7 +63,7 @@ public class KangarooBukkit extends ExtendedJavaPlugin {
         new CommandService();
 
         Events.subscribe(ServerLoadEvent.class)
-                .handler(e -> heartbeatService.markLoaded())
+                .handler(event -> heartbeatService.markLoaded())
                 .bindWith(this);
 
         this.getLogger().info("Kangaroo has been enabled.");

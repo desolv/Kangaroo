@@ -43,7 +43,7 @@ public record DeploymentTarget(
             privateKey = resolved.toString();
         }
 
-        int port = raw.get("port") instanceof Number n ? n.intValue() : DEFAULT_PORT;
+        int port = raw.get("port") instanceof Number number ? number.intValue() : DEFAULT_PORT;
         String remotePath = str(raw, "remotePath");
         if (remotePath == null) remotePath = DEFAULT_REMOTE_PATH;
 
@@ -51,10 +51,10 @@ public record DeploymentTarget(
     }
 
     private static String str(Map<String, Object> raw, String key) {
-        Object v = raw.get(key);
-        if (v == null) return null;
-        String s = v.toString();
-        return s.isEmpty() ? null : s;
+        Object value = raw.get(key);
+        if (value == null) return null;
+        String string = value.toString();
+        return string.isEmpty() ? null : string;
     }
 
     private static void require(String value, String message) {

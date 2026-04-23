@@ -19,9 +19,9 @@ public class DeploymentPlugin implements Plugin<Project> {
                     task.getGroupKey().set(extension.getGroupKey());
                 });
 
-        project.afterEvaluate(p -> {
-            TaskProvider<Jar> shadow = p.getTasks().named("shadowJar", Jar.class);
-            TaskProvider<Jar> jar = p.getTasks().named("jar", Jar.class);
+        project.afterEvaluate(evaluatedProject -> {
+            TaskProvider<Jar> shadow = evaluatedProject.getTasks().named("shadowJar", Jar.class);
+            TaskProvider<Jar> jar = evaluatedProject.getTasks().named("jar", Jar.class);
             taskProvider.configure(task -> {
                 task.getArtifact().set(shadow.flatMap(Jar::getArchiveFile));
                 task.dependsOn(shadow, jar);

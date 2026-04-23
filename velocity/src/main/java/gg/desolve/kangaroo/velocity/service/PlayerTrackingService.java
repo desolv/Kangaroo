@@ -8,6 +8,7 @@ import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import gg.desolve.kangaroo.player.KangarooPlayer;
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.server.Server;
 import gg.desolve.kangaroo.velocity.KangarooVelocity;
 import net.kyori.adventure.text.Component;
@@ -15,34 +16,23 @@ import net.kyori.adventure.text.Component;
 import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class PlayerTrackingService {
 
-    private final ScheduledExecutorService heartbeatExecutor;
-
-    public PlayerTrackingService() {
-        this.heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "kangaroo-player-heartbeat");
-            thread.setDaemon(true);
-            return thread;
-        });
-    }
+    private KangarooScheduler.ScheduledTask heartbeatTask;
 
     public void start() {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
-        plugin.getServer().getEventManager().register(plugin, this);
+        KangarooVelocity.getInstance().getServer().getEventManager()
+                .register(KangarooVelocity.getInstance(), this);
         seedExistingPlayers();
         startHeartbeats();
     }
 
     public void stop() {
-        heartbeatExecutor.shutdown();
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
-        plugin.getPlayerWriter().removeAllByProxy(plugin.getProxyId());
+        if (heartbeatTask != null) heartbeatTask.cancel();
+        KangarooVelocity.getInstance().getPlayerWriter()
+                .removeAllByProxy(KangarooVelocity.getInstance().getProxyId());
     }
 
     @Subscribe(priority = 1000)
@@ -75,13 +65,12 @@ public class PlayerTrackingService {
 
     @Subscribe
     public void onPostLogin(PostLoginEvent event) {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
         Player player = event.getPlayer();
 
         KangarooPlayer tracked = new KangarooPlayer(
                 player.getUniqueId(),
                 player.getUsername(),
-                plugin.getProxyId(),
+                KangarooVelocity.getInstance().getProxyId(),
                 null,
                 System.currentTimeMillis(),
                 null,
@@ -89,22 +78,21 @@ public class PlayerTrackingService {
                 System.currentTimeMillis()
         );
 
-        plugin.getPlayerWriter().addPlayer(tracked);
+        KangarooVelocity.getInstance().getPlayerWriter().addPlayer(tracked);
     }
 
     @Subscribe
     public void onServerConnected(ServerConnectedEvent event) {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
         Player player = event.getPlayer();
         String newServer = resolveKangarooId(event.getServer().getServerInfo().getAddress());
         String lastServer = event.getPreviousServer()
-                .map(s -> resolveKangarooId(s.getServerInfo().getAddress()))
+                .map(previousServer -> resolveKangarooId(previousServer.getServerInfo().getAddress()))
                 .orElse(null);
 
-        plugin.getPlayerWriter().updateServer(
+        KangarooVelocity.getInstance().getPlayerWriter().updateServer(
                 player.getUniqueId(),
                 player.getUsername(),
-                plugin.getProxyId(),
+                KangarooVelocity.getInstance().getProxyId(),
                 newServer,
                 lastServer,
                 System.currentTimeMillis()
@@ -113,9 +101,9 @@ public class PlayerTrackingService {
 
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
         Player player = event.getPlayer();
-        plugin.getPlayerWriter().removePlayer(player.getUniqueId(), player.getUsername(), plugin.getProxyId());
+        KangarooVelocity.getInstance().getPlayerWriter().removePlayer(
+                player.getUniqueId(), player.getUsername(), KangarooVelocity.getInstance().getProxyId());
     }
 
     private void seedExistingPlayers() {
@@ -123,7 +111,7 @@ public class PlayerTrackingService {
         ProxyServer proxy = plugin.getServer();
         for (Player player : proxy.getAllPlayers()) {
             String server = player.getCurrentServer()
-                    .map(s -> resolveKangarooId(s.getServerInfo().getAddress()))
+                    .map(currentServer -> resolveKangarooId(currentServer.getServerInfo().getAddress()))
                     .orElse(null);
 
             KangarooPlayer tracked = new KangarooPlayer(
@@ -150,7 +138,7 @@ public class PlayerTrackingService {
     }
 
     private void startHeartbeats() {
-        heartbeatExecutor.scheduleAtFixedRate(() -> {
+        this.heartbeatTask = KangarooVelocity.getInstance().getScheduler().scheduleRepeating(() -> {
             try {
                 ProxyServer proxy = KangarooVelocity.getInstance().getServer();
                 for (Player player : proxy.getAllPlayers()) {
@@ -159,6 +147,6 @@ public class PlayerTrackingService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 30, 30, TimeUnit.SECONDS);
+        }, 30, 30);
     }
 }

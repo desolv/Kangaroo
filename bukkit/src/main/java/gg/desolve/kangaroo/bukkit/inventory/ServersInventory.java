@@ -30,7 +30,7 @@ public class ServersInventory {
                 .pageSize(18)
                 .create();
 
-        gui.setDefaultClickAction(e -> e.setCancelled(true));
+        gui.setDefaultClickAction(event -> event.setCancelled(true));
 
         gui.getFiller().fillTop(
                 new GuiItem(
@@ -50,7 +50,7 @@ public class ServersInventory {
                     gui.update();
                 });
 
-        gui.setCloseGuiAction(e -> refresh.close());
+        gui.setCloseGuiAction(event -> refresh.close());
     }
 
     private void populate(PaginatedGui gui) {
@@ -69,7 +69,7 @@ public class ServersInventory {
                                     Material.ARROW,
                                     "<gray>Previous Page"
                             ),
-                            e -> {
+                            event -> {
                                 gui.previous();
                                 populate(gui);
                                 gui.update();
@@ -85,7 +85,7 @@ public class ServersInventory {
                                     Material.ARROW,
                                     "<gray>Next Page"
                             ),
-                            e -> {
+                            event -> {
                                 gui.next();
                                 populate(gui);
                                 gui.update();

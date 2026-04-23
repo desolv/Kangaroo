@@ -68,7 +68,7 @@ public class ServerService {
         String sentinelId = redis.query(jedis -> jedis.get("kangaroo:sentinel"));
         if (sentinelId == null) return Optional.empty();
         return getProxies().stream()
-                .filter(p -> p.getId().equals(sentinelId))
+                .filter(server -> server.getId().equals(sentinelId))
                 .findFirst();
     }
 }

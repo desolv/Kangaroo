@@ -22,8 +22,8 @@ public class CommandService {
     }
 
     private void registerContexts() {
-        commandManager.getCommandContexts().registerContext(KangarooPlayer.class, c -> {
-            String name = c.popFirstArg();
+        commandManager.getCommandContexts().registerContext(KangarooPlayer.class, context -> {
+            String name = context.popFirstArg();
             KangarooPlayer player = KangarooBukkit.getInstance().getPlayerCache().getByName(name);
             if (player == null) {
                 throw new InvalidCommandArgument("No player named '" + name + "' is online.");
@@ -31,23 +31,23 @@ public class CommandService {
             return player;
         });
 
-        commandManager.getCommandContexts().registerContext(Server.class, c -> {
-            String id = c.popFirstArg();
+        commandManager.getCommandContexts().registerContext(Server.class, context -> {
+            String id = context.popFirstArg();
             return KangarooBukkit.getInstance().getServerService().getById(id)
                     .orElseThrow(() -> new InvalidCommandArgument("No server found with id '" + id + "'."));
         });
     }
 
     private void registerCompletions() {
-        commandManager.getCommandCompletions().registerCompletion("players", c ->
+        commandManager.getCommandCompletions().registerCompletion("players", context ->
                 KangarooBukkit.getInstance().getPlayerCache().getAll().stream()
                         .map(KangarooPlayer::getName).toList());
 
-        commandManager.getCommandCompletions().registerCompletion("servers", c ->
+        commandManager.getCommandCompletions().registerCompletion("servers", context ->
                 KangarooBukkit.getInstance().getServerService().getServers().stream()
                         .map(Server::getId).toList());
 
-        commandManager.getCommandCompletions().registerCompletion("proxies", c ->
+        commandManager.getCommandCompletions().registerCompletion("proxies", context ->
                 KangarooBukkit.getInstance().getServerService().getProxies().stream()
                         .map(Server::getId).toList());
     }

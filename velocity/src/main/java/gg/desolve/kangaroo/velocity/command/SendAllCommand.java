@@ -18,11 +18,10 @@ public class SendAllCommand extends BaseCommand {
     @CommandCompletion("@servers")
     public void onDefault(CommandIssuer issuer, Server target) {
         Audience audience = issuer.getIssuer();
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
 
         int count = 0;
-        for (KangarooPlayer player : plugin.getPlayerCache().getAll()) {
-            plugin.getRedirectService().redirect(player, target.getId());
+        for (KangarooPlayer player : KangarooVelocity.getInstance().getPlayerCache().getAll()) {
+            KangarooVelocity.getInstance().getRedirectService().redirect(player, target.getId());
             count++;
         }
 

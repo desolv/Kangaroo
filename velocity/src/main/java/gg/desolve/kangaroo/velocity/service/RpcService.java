@@ -8,10 +8,9 @@ import gg.desolve.kangaroo.velocity.KangarooVelocity;
 public class RpcService {
 
     public void executeOnServer(String serverId, String command) {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
-        plugin.getRedisStorage().publish(
+        KangarooVelocity.getInstance().getRedisStorage().publish(
                 "kangaroo:rpc:" + serverId,
-                JsonUtil.GSON.toJson(new RemoteCommand(plugin.getProxyId(), command)));
+                JsonUtil.GSON.toJson(new RemoteCommand(KangarooVelocity.getInstance().getProxyId(), command)));
     }
 
     public void broadcastOnServer(String serverId, String message) {
@@ -19,9 +18,11 @@ public class RpcService {
     }
 
     public void broadcastOnServer(String serverId, String message, String permission) {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
-        plugin.getRedisStorage().publish(
+        KangarooVelocity.getInstance().getRedisStorage().publish(
                 "kangaroo:broadcast:" + serverId,
-                JsonUtil.GSON.toJson(new RemoteBroadcast(plugin.getProxyId(), message, permission)));
+                JsonUtil.GSON.toJson(new RemoteBroadcast(
+                        KangarooVelocity.getInstance().getProxyId(),
+                        message,
+                        permission)));
     }
 }

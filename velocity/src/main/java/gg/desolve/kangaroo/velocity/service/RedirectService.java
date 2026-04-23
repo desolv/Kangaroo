@@ -18,9 +18,8 @@ public class RedirectService {
     private RedisStorage.Subscription subscription;
 
     public void start() {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
-        this.subscription = plugin.getRedisStorage().subscribe(
-                "kangaroo:redirect:" + plugin.getProxyId(),
+        this.subscription = KangarooVelocity.getInstance().getRedisStorage().subscribe(
+                "kangaroo:redirect:" + KangarooVelocity.getInstance().getProxyId(),
                 (channel, message) -> {
                     try {
                         RedirectRequest req = JsonUtil.GSON.fromJson(message, RedirectRequest.class);
@@ -65,9 +64,8 @@ public class RedirectService {
     }
 
     private Optional<RegisteredServer> resolveServer(String serverId) {
-        KangarooVelocity plugin = KangarooVelocity.getInstance();
-        return plugin.getServerService().getById(serverId)
-                .flatMap(target -> plugin.getServer().getAllServers().stream()
+        return KangarooVelocity.getInstance().getServerService().getById(serverId)
+                .flatMap(target -> KangarooVelocity.getInstance().getServer().getAllServers().stream()
                         .filter(rs -> {
                             InetSocketAddress addr = rs.getServerInfo().getAddress();
                             return addr.getPort() == target.getPort()

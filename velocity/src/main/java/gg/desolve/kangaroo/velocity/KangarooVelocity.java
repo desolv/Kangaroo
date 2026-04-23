@@ -12,11 +12,13 @@ import gg.desolve.kangaroo.player.PlayerEventSubscriber;
 import gg.desolve.kangaroo.player.PlayerService;
 import gg.desolve.kangaroo.player.PlayerWriter;
 import gg.desolve.kangaroo.reboot.ScheduledRebootService;
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.server.ServerMonitor;
 import gg.desolve.kangaroo.server.ServerService;
 import gg.desolve.kangaroo.storage.ConfigStorage;
 import gg.desolve.kangaroo.storage.RedisStorage;
 import gg.desolve.kangaroo.util.Message;
+import gg.desolve.kangaroo.velocity.scheduler.VelocityScheduler;
 import gg.desolve.kangaroo.velocity.service.*;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -38,6 +40,7 @@ public final class KangarooVelocity {
 
     private final ConfigService configService;
     private RedisStorage redisStorage;
+    private KangarooScheduler scheduler;
     private ServerService serverService;
     private HeartbeatService heartbeatService;
     private ServerMonitor serverMonitor;
@@ -72,20 +75,21 @@ public final class KangarooVelocity {
         ConfigStorage config = configService.load("config.yml");
         this.proxyId = config.get("server.id");
         this.redisStorage = new RedisStorage(config.get("redis.uri"));
+        this.scheduler = new VelocityScheduler(server, this);
         this.scheduledRebootService = new ScheduledRebootService(redisStorage);
         this.serverService = new ServerService(redisStorage);
         this.playerService = new PlayerService(redisStorage);
         this.playerWriter = new PlayerWriter(redisStorage);
-        this.playerCache = new PlayerCache(playerService);
+        this.playerCache = new PlayerCache(playerService, scheduler);
 
         this.heartbeatService = new HeartbeatService(config.getStringList("server.groups"));
 
         this.serverMonitor = new ServerMonitor(serverService, redisStorage, serverEvent -> {
             String message = serverEvent.toMessage();
             server.getAllPlayers().stream()
-                    .filter(p -> p.hasPermission("kangaroo.admin.notify"))
-                    .forEach(p -> Message.send(p, message));
-        });
+                    .filter(player -> player.hasPermission("kangaroo.admin.notify"))
+                    .forEach(player -> Message.send(player, message));
+        }, scheduler);
         serverMonitor.start();
 
         playerCache.start();
@@ -111,7 +115,7 @@ public final class KangarooVelocity {
         sentinelService.start();
 
         this.rebootSchedulerService = new RebootSchedulerService(
-                scheduledRebootService, serverService, rpcService, sentinelService);
+                scheduledRebootService, serverService, rpcService, sentinelService, scheduler);
         rebootSchedulerService.start();
 
         new CommandService();

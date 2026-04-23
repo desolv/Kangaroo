@@ -2,20 +2,18 @@ package gg.desolve.kangaroo.velocity.service;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import gg.desolve.kangaroo.heartbeat.Heartbeat;
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.server.Server;
 import gg.desolve.kangaroo.server.ServerType;
 import gg.desolve.kangaroo.util.CpuUtil;
 import gg.desolve.kangaroo.velocity.KangarooVelocity;
 
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class HeartbeatService {
 
     private final Heartbeat heartbeat;
-    private final ScheduledExecutorService executor;
+    private final KangarooScheduler.ScheduledTask statsTask;
 
     public HeartbeatService(List<String> groups) {
         KangarooVelocity plugin = KangarooVelocity.getInstance();
@@ -36,19 +34,19 @@ public class HeartbeatService {
                 0
         );
 
-        this.heartbeat = new Heartbeat(plugin.getRedisStorage(), server, plugin.getLoadStartTime());
+        this.heartbeat = new Heartbeat(
+                plugin.getRedisStorage(),
+                server,
+                plugin.getLoadStartTime(),
+                plugin.getScheduler()
+        );
         heartbeat.start();
 
-        this.executor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "kangaroo-heartbeat-stats");
-            thread.setDaemon(true);
-            return thread;
-        });
-        executor.scheduleAtFixedRate(() -> {
+        this.statsTask = plugin.getScheduler().scheduleRepeating(() -> {
             heartbeat.getServer().setTotalPlayers(proxy.getPlayerCount());
             heartbeat.getServer().setMaxPlayers(proxy.getConfiguration().getShowMaxPlayers());
             heartbeat.getServer().setCpu(CpuUtil.processLoadPercent());
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 5);
     }
 
     public void markLoaded() {
@@ -56,7 +54,7 @@ public class HeartbeatService {
     }
 
     public void shutdown() {
-        executor.shutdown();
+        statsTask.cancel();
         heartbeat.stop();
     }
 }

@@ -1,38 +1,34 @@
 package gg.desolve.kangaroo.player;
 
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class PlayerCache {
 
     private final PlayerService playerService;
+    private final KangarooScheduler scheduler;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private Map<UUID, KangarooPlayer> players = new HashMap<>();
-    private final ScheduledExecutorService executor;
+    private KangarooScheduler.ScheduledTask task;
 
-    public PlayerCache(PlayerService playerService) {
+    public PlayerCache(PlayerService playerService, KangarooScheduler scheduler) {
         this.playerService = playerService;
-        this.executor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "kangaroo-player-cache");
-            thread.setDaemon(true);
-            return thread;
-        });
+        this.scheduler = scheduler;
     }
 
     public void start() {
         refresh();
-        executor.scheduleAtFixedRate(this::refresh, 30, 30, TimeUnit.SECONDS);
+        this.task = scheduler.scheduleRepeating(this::refresh, 30, 30);
     }
 
     public void stop() {
-        executor.shutdown();
+        if (task != null) task.cancel();
     }
 
     private void refresh() {
@@ -76,7 +72,7 @@ public class PlayerCache {
         lock.readLock().lock();
         try {
             return players.values().stream()
-                    .filter(p -> p.getName().equalsIgnoreCase(name))
+                    .filter(player -> player.getName().equalsIgnoreCase(name))
                     .findFirst()
                     .orElse(null);
         } finally {

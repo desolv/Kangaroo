@@ -1,5 +1,6 @@
 package gg.desolve.kangaroo.server;
 
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.storage.RedisStorage;
 import gg.desolve.kangaroo.util.JsonUtil;
 
@@ -8,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -20,18 +18,18 @@ public class ServerMonitor {
     private final RedisStorage redis;
     private final Consumer<ServerEvent> eventHandler;
     private final Map<String, ServerType> knownServers = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService executor;
+    private final KangarooScheduler scheduler;
     private RedisStorage.Subscription subscription;
+    private KangarooScheduler.ScheduledTask task;
 
-    public ServerMonitor(ServerService serverService, RedisStorage redis, Consumer<ServerEvent> eventHandler) {
+    public ServerMonitor(ServerService serverService,
+                         RedisStorage redis,
+                         Consumer<ServerEvent> eventHandler,
+                         KangarooScheduler scheduler) {
         this.serverService = serverService;
         this.redis = redis;
         this.eventHandler = eventHandler;
-        this.executor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "kangaroo-server-monitor");
-            thread.setDaemon(true);
-            return thread;
-        });
+        this.scheduler = scheduler;
     }
 
     public void start() {
@@ -66,14 +64,14 @@ public class ServerMonitor {
             }
         });
 
-        executor.scheduleAtFixedRate(this::check, 5, 5, TimeUnit.SECONDS);
+        this.task = scheduler.scheduleRepeating(this::check, 5, 5);
     }
 
     public void stop() {
         if (subscription != null) {
             subscription.unsubscribe();
         }
-        executor.shutdown();
+        if (task != null) task.cancel();
     }
 
     private void check() {

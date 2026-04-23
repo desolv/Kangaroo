@@ -1,5 +1,6 @@
 package gg.desolve.kangaroo.heartbeat;
 
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.server.Server;
 import gg.desolve.kangaroo.server.ServerEvent;
 import gg.desolve.kangaroo.server.ServerEventType;
@@ -7,38 +8,26 @@ import gg.desolve.kangaroo.storage.RedisStorage;
 import gg.desolve.kangaroo.util.JsonUtil;
 import lombok.Getter;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 public class Heartbeat {
 
     private final RedisStorage redis;
     @Getter
     private final Server server;
     private final long loadStartTime;
-    private final ScheduledExecutorService executor;
+    private final KangarooScheduler scheduler;
+    private KangarooScheduler.ScheduledTask task;
 
-    public Heartbeat(RedisStorage redis, Server server, long loadStartTime) {
+    public Heartbeat(RedisStorage redis, Server server, long loadStartTime, KangarooScheduler scheduler) {
         this.redis = redis;
         this.server = server;
         this.loadStartTime = loadStartTime;
-        this.executor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r, "kangaroo-heartbeat");
-            thread.setDaemon(true);
-            return thread;
-        });
+        this.scheduler = scheduler;
     }
 
     public void start() {
         publish();
         publishServerEvent(ServerEventType.CONNECTED, 0);
-        executor.scheduleAtFixedRate(
-                this::publish,
-                5,
-                5,
-                TimeUnit.SECONDS
-        );
+        this.task = scheduler.scheduleRepeating(this::publish, 5, 5);
     }
 
     public void markLoaded() {
@@ -46,7 +35,7 @@ public class Heartbeat {
     }
 
     public void stop() {
-        executor.shutdown();
+        if (task != null) task.cancel();
         try {
             publishServerEvent(ServerEventType.DISCONNECTED, 0);
             redis.execute(jedis -> jedis.del("kangaroo:servers:" + server.getId()));

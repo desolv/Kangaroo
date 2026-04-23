@@ -35,7 +35,12 @@ public class HeartbeatService {
                 0
         );
 
-        this.heartbeat = new Heartbeat(plugin.getRedisStorage(), server, plugin.getLoadStartTime());
+        this.heartbeat = new Heartbeat(
+                plugin.getRedisStorage(),
+                server,
+                plugin.getLoadStartTime(),
+                plugin.getScheduler()
+        );
         heartbeat.start();
 
         this.task = Schedulers.builder()

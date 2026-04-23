@@ -3,6 +3,7 @@ package gg.desolve.kangaroo.velocity.service;
 import gg.desolve.kangaroo.reboot.ScheduleType;
 import gg.desolve.kangaroo.reboot.ScheduledReboot;
 import gg.desolve.kangaroo.reboot.ScheduledRebootService;
+import gg.desolve.kangaroo.scheduler.KangarooScheduler;
 import gg.desolve.kangaroo.server.Server;
 import gg.desolve.kangaroo.server.ServerService;
 import gg.desolve.kangaroo.server.ServerType;
@@ -10,8 +11,6 @@ import gg.desolve.kangaroo.util.TimeUtil;
 import gg.desolve.kangaroo.velocity.KangarooVelocity;
 
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class RebootSchedulerService {
@@ -20,29 +19,27 @@ public class RebootSchedulerService {
     private final ServerService serverService;
     private final RpcService rpcService;
     private final SentinelService sentinelService;
-    private final ScheduledExecutorService executor;
+    private final KangarooScheduler scheduler;
+    private KangarooScheduler.ScheduledTask task;
 
     public RebootSchedulerService(ScheduledRebootService rebootService,
                                   ServerService serverService,
                                   RpcService rpcService,
-                                  SentinelService sentinelService) {
+                                  SentinelService sentinelService,
+                                  KangarooScheduler scheduler) {
         this.rebootService = rebootService;
         this.serverService = serverService;
         this.rpcService = rpcService;
         this.sentinelService = sentinelService;
-        this.executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "kangaroo-reboot-scheduler");
-            thread.setDaemon(true);
-            return thread;
-        });
+        this.scheduler = scheduler;
     }
 
     public void start() {
-        executor.scheduleAtFixedRate(this::tick, 1, 1, TimeUnit.SECONDS);
+        this.task = scheduler.scheduleRepeating(this::tick, 1, 1);
     }
 
     public void stop() {
-        executor.shutdown();
+        if (task != null) task.cancel();
     }
 
     private void tick() {

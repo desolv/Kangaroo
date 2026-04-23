@@ -48,13 +48,13 @@ public class PlayerService {
 
     public List<KangarooPlayer> getByServer(String serverId) {
         return getAll().stream()
-                .filter(p -> serverId.equals(p.getServer()))
+                .filter(player -> serverId.equals(player.getServer()))
                 .toList();
     }
 
     public List<KangarooPlayer> getByProxy(String proxyId) {
         return getAll().stream()
-                .filter(p -> proxyId.equals(p.getProxy()))
+                .filter(player -> proxyId.equals(player.getProxy()))
                 .toList();
     }
 
