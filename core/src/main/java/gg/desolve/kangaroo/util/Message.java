@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 
@@ -29,5 +30,16 @@ public class Message {
 
     public static void send(Audience audience, List<String> lines) {
         audience.sendMessage(translate(String.join("<newline>", lines)));
+    }
+
+    public static void broadcast(String message) {
+        Bukkit.getOnlinePlayers().forEach(player -> send(player, message));
+    }
+
+    public static void broadcast(String message, String permission) {
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            if (!player.hasPermission(permission)) return;
+            send(player, message);
+        });
     }
 }
