@@ -11,6 +11,7 @@ import gg.desolve.kangaroo.player.PlayerCache;
 import gg.desolve.kangaroo.player.PlayerEventSubscriber;
 import gg.desolve.kangaroo.player.PlayerService;
 import gg.desolve.kangaroo.player.PlayerWriter;
+import gg.desolve.kangaroo.reboot.ScheduledRebootService;
 import gg.desolve.kangaroo.server.ServerMonitor;
 import gg.desolve.kangaroo.server.ServerService;
 import gg.desolve.kangaroo.storage.ConfigStorage;
@@ -47,8 +48,11 @@ public final class KangarooVelocity {
     private PlayerTrackingService playerTrackingService;
     private PlayerCleanupService playerCleanupService;
     private RpcService rpcService;
+    private RpcReceiverService rpcReceiverService;
     private RedirectService redirectService;
     private SentinelService sentinelService;
+    private ScheduledRebootService scheduledRebootService;
+    private RebootSchedulerService rebootSchedulerService;
     private String proxyId;
     private long loadStartTime;
 
@@ -68,6 +72,7 @@ public final class KangarooVelocity {
         ConfigStorage config = configService.load("config.yml");
         this.proxyId = config.get("server.id");
         this.redisStorage = new RedisStorage(config.get("redis.uri"));
+        this.scheduledRebootService = new ScheduledRebootService(redisStorage);
         this.serverService = new ServerService(redisStorage);
         this.playerService = new PlayerService(redisStorage);
         this.playerWriter = new PlayerWriter(redisStorage);
@@ -96,11 +101,18 @@ public final class KangarooVelocity {
 
         this.rpcService = new RpcService();
 
+        this.rpcReceiverService = new RpcReceiverService();
+        rpcReceiverService.start();
+
         this.redirectService = new RedirectService();
         redirectService.start();
 
         this.sentinelService = new SentinelService();
         sentinelService.start();
+
+        this.rebootSchedulerService = new RebootSchedulerService(
+                scheduledRebootService, serverService, rpcService, sentinelService);
+        rebootSchedulerService.start();
 
         new CommandService();
 
@@ -110,6 +122,12 @@ public final class KangarooVelocity {
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
+        if (rebootSchedulerService != null) {
+            rebootSchedulerService.stop();
+        }
+        if (rpcReceiverService != null) {
+            rpcReceiverService.stop();
+        }
         if (sentinelService != null) {
             sentinelService.stop();
         }

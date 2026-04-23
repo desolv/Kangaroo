@@ -2,10 +2,18 @@ plugins {
     id 'java-library'
 }
 
+repositories {
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+}
+
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
     compileOnly 'org.apache.logging.log4j:log4j-core:2.24.3'
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
 
     api 'org.mongodb:mongodb-driver-reactivestreams:5.3.1'
     api 'redis.clients:jedis:5.2.0'
