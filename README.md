@@ -36,34 +36,41 @@ Java 21 · Gradle (Shadow) · Jedis · MongoDB · Paper 1.21 · Velocity 3.4
 
 ## Deployment
 
-The bundled `deployment` Gradle plugin uploads shadow jars over SFTP. Copy `servers.example.json` to `servers.json` and
-fill in your targets, keyed by group (`bukkit` or `proxy`):
-
-```json
-{
-  "bukkit": [
-    {
-      "name": "lobby-1",
-      "host": "node.example.com",
-      "user": "abcdef01.1",
-      "privateKey": "~/.ssh/id_ed25519"
-    }
-  ],
-  "proxy": [
-    {
-      "name": "proxy-1",
-      "host": "node.example.com",
-      "user": "abcdef01.99",
-      "privateKey": "~/.ssh/id_ed25519"
-    }
-  ]
-}
-```
-
-Each target needs `name`, `host`, `user`, plus one of `password` or `privateKey`. `port` defaults to `2022`,`remotePath`
-to `/plugins`. `servers.json` is gitignored.
+Uploads shadow jars over SFTP. Copy `servers.example.json` → `servers.json` (gitignored) and fill in targets keyed by
+group. Each target requires `name`, `host`, `user`, and one of `password` / `privateKey`. `port` defaults to `2022`,
+`remotePath` to `/plugins`.
 
 ```bash
 ./gradlew :bukkit:publishPlugin     # → every 'bukkit' target
 ./gradlew :velocity:publishPlugin   # → every 'proxy' target
+./gradlew publishPlugins            # → aggregate; every module that applies the plugin
 ```
+
+The `publishPlugins` aggregator is registered automatically by the deployment plugin — any module that applies
+`gg.desolve.kangaroo.deployment` is wired in with no changes to the root build.
+
+### Reusing across repos
+
+The deployment plugin is a standalone Gradle `includeBuild`, so another project can consume it directly. In the
+consuming repo's `settings.gradle`:
+
+```groovy
+includeBuild '/absolute/or/relative/path/to/Kangaroo'
+```
+
+Then in any module's `build.gradle`:
+
+```groovy
+plugins {
+    id 'com.gradleup.shadow'
+    id 'gg.desolve.kangaroo.deployment'
+}
+
+deployment {
+    groupKey = 'my-group'                                              // new key in servers.json
+    configFile = rootProject.file('../Kangaroo/servers.json')          // optional; share Kangaroo's config
+}
+```
+
+`configFile` is optional — omit it and the plugin falls back to `<rootDir>/servers.json` in the consuming repo. The
+consumer gets its own `publishPlugins` aggregator scoped to its own modules.
