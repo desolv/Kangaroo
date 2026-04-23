@@ -13,6 +13,7 @@ public class CommandService {
 
     public CommandService() {
         this.commandManager = new PaperCommandManager(KangarooBukkit.getInstance());
+        this.commandManager.enableUnstableAPI("help");
 
         registerContexts();
         registerCompletions();
