@@ -34,7 +34,13 @@ public class RpcService {
                     try {
                         RemoteBroadcast broadcast = JsonUtil.GSON.fromJson(message, RemoteBroadcast.class);
                         Schedulers.sync()
-                                .run(() -> Message.broadcast(broadcast.getMessage()));
+                                .run(() -> {
+                                    if (broadcast.getPermission() == null) {
+                                        Message.broadcast(broadcast.getMessage());
+                                    } else {
+                                        Message.broadcast(broadcast.getMessage(), broadcast.getPermission());
+                                    }
+                                });
                     } catch (Exception exception) {
                         exception.printStackTrace();
                     }

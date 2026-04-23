@@ -31,8 +31,11 @@ public class RpcReceiverService {
                 (channel, message) -> {
                     try {
                         RemoteBroadcast broadcast = JsonUtil.GSON.fromJson(message, RemoteBroadcast.class);
-                        plugin.getServer().getAllPlayers()
-                                .forEach(player -> Message.send(player, broadcast.getMessage()));
+                        plugin.getServer().getAllPlayers().forEach(player -> {
+                            if (broadcast.getPermission() != null && !player.hasPermission(broadcast.getPermission()))
+                                return;
+                            Message.send(player, broadcast.getMessage());
+                        });
                     } catch (Exception exception) {
                         plugin.getLogger().error("Failed to dispatch RPC broadcast on proxy", exception);
                     }

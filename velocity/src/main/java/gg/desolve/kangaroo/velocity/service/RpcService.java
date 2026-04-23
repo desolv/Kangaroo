@@ -15,9 +15,13 @@ public class RpcService {
     }
 
     public void broadcastOnServer(String serverId, String message) {
+        broadcastOnServer(serverId, message, null);
+    }
+
+    public void broadcastOnServer(String serverId, String message, String permission) {
         KangarooVelocity plugin = KangarooVelocity.getInstance();
         plugin.getRedisStorage().publish(
                 "kangaroo:broadcast:" + serverId,
-                JsonUtil.GSON.toJson(new RemoteBroadcast(plugin.getProxyId(), message)));
+                JsonUtil.GSON.toJson(new RemoteBroadcast(plugin.getProxyId(), message, permission)));
     }
 }
