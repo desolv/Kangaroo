@@ -24,8 +24,8 @@ public class RedisStorage {
         this.pool = new JedisPool(
                 config,
                 URI.create(uri),
-                10_000,
-                10_000
+                3_000,
+                3_000
         );
 
     }

@@ -49,7 +49,7 @@ public class Heartbeat {
             redis.execute(jedis ->
                     jedis.setex("kangaroo:servers:" + server.getId(), 15, JsonUtil.GSON.toJson(server)));
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("[Kangaroo] Heartbeat publish failed: " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
     }
 
